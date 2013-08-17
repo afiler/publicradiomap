@@ -1,0 +1,85 @@
+<h1>Listing facilities</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Comm city</th>
+      <th>Comm state</th>
+      <th>Eeo rpt ind</th>
+      <th>Fac address1</th>
+      <th>Fac address2</th>
+      <th>Fac callsign</th>
+      <th>Fac channel</th>
+      <th>Fac city</th>
+      <th>Fac country</th>
+      <th>Fac frequency</th>
+      <th>Fac service</th>
+      <th>Fac state</th>
+      <th>Fac status date</th>
+      <th>Fac type</th>
+      <th>Facility</th>
+      <th>Lic expiration date</th>
+      <th>Fac status</th>
+      <th>Fac zip1</th>
+      <th>Fac zip2</th>
+      <th>Station type</th>
+      <th>Assoc facility</th>
+      <th>Callsign eff date</th>
+      <th>Tsid ntsc</th>
+      <th>Tsid dtv</th>
+      <th>Digital status</th>
+      <th>Sat tv</th>
+      <th>Network affil</th>
+      <th>Nielsen dma</th>
+      <th>Tv virtual channel</th>
+      <th>Last change date</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @facilities.each do |facility| %>
+      <tr>
+        <td><%= facility.comm_city %></td>
+        <td><%= facility.comm_state %></td>
+        <td><%= facility.eeo_rpt_ind %></td>
+        <td><%= facility.fac_address1 %></td>
+        <td><%= facility.fac_address2 %></td>
+        <td><%= facility.fac_callsign %></td>
+        <td><%= facility.fac_channel %></td>
+        <td><%= facility.fac_city %></td>
+        <td><%= facility.fac_country %></td>
+        <td><%= facility.fac_frequency %></td>
+        <td><%= facility.fac_service %></td>
+        <td><%= facility.fac_state %></td>
+        <td><%= facility.fac_status_date %></td>
+        <td><%= facility.fac_type %></td>
+        <td><%= facility.facility_id %></td>
+        <td><%= facility.lic_expiration_date %></td>
+        <td><%= facility.fac_status %></td>
+        <td><%= facility.fac_zip1 %></td>
+        <td><%= facility.fac_zip2 %></td>
+        <td><%= facility.station_type %></td>
+        <td><%= facility.assoc_facility_id %></td>
+        <td><%= facility.callsign_eff_date %></td>
+        <td><%= facility.tsid_ntsc %></td>
+        <td><%= facility.tsid_dtv %></td>
+        <td><%= facility.digital_status %></td>
+        <td><%= facility.sat_tv %></td>
+        <td><%= facility.network_affil %></td>
+        <td><%= facility.nielsen_dma %></td>
+        <td><%= facility.tv_virtual_channel %></td>
+        <td><%= facility.last_change_date %></td>
+        <td><%= link_to 'Show', facility %></td>
+        <td><%= link_to 'Edit', edit_facility_path(facility) %></td>
+        <td><%= link_to 'Destroy', facility, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Facility', new_facility_path %>

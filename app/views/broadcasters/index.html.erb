@@ -1,0 +1,28 @@
+<h1>Listing broadcasters</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @broadcasters.each do |broadcaster| %>
+      <tr>
+        <td><%= link_to broadcaster.display_name, broadcaster %></td>
+        <td><%= broadcaster.community %></td>
+        <td><%= broadcaster.callsign %></td>
+        <td><%= broadcaster.frequency %></td>
+        <td><%= link_to 'Edit', edit_broadcaster_path(broadcaster) %></td>
+        <td><%= link_to 'Destroy', broadcaster, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Broadcaster', new_broadcaster_path %>

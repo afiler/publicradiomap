@@ -1,0 +1,137 @@
+<%= form_for(@facility) do |f| %>
+  <% if @facility.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@facility.errors.count, "error") %> prohibited this facility from being saved:</h2>
+
+      <ul>
+      <% @facility.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :comm_city %><br>
+    <%= f.text_field :comm_city %>
+  </div>
+  <div class="field">
+    <%= f.label :comm_state %><br>
+    <%= f.text_field :comm_state %>
+  </div>
+  <div class="field">
+    <%= f.label :eeo_rpt_ind %><br>
+    <%= f.text_field :eeo_rpt_ind %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_address1 %><br>
+    <%= f.text_field :fac_address1 %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_address2 %><br>
+    <%= f.text_field :fac_address2 %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_callsign %><br>
+    <%= f.text_field :fac_callsign %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_channel %><br>
+    <%= f.text_field :fac_channel %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_city %><br>
+    <%= f.text_field :fac_city %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_country %><br>
+    <%= f.text_field :fac_country %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_frequency %><br>
+    <%= f.text_field :fac_frequency %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_service %><br>
+    <%= f.text_field :fac_service %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_state %><br>
+    <%= f.text_field :fac_state %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_status_date %><br>
+    <%= f.text_field :fac_status_date %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_type %><br>
+    <%= f.text_field :fac_type %>
+  </div>
+  <div class="field">
+    <%= f.label :facility_id %><br>
+    <%= f.text_field :facility_id %>
+  </div>
+  <div class="field">
+    <%= f.label :lic_expiration_date %><br>
+    <%= f.text_field :lic_expiration_date %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_status %><br>
+    <%= f.text_field :fac_status %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_zip1 %><br>
+    <%= f.text_field :fac_zip1 %>
+  </div>
+  <div class="field">
+    <%= f.label :fac_zip2 %><br>
+    <%= f.text_field :fac_zip2 %>
+  </div>
+  <div class="field">
+    <%= f.label :station_type %><br>
+    <%= f.text_field :station_type %>
+  </div>
+  <div class="field">
+    <%= f.label :assoc_facility_id %><br>
+    <%= f.text_field :assoc_facility_id %>
+  </div>
+  <div class="field">
+    <%= f.label :callsign_eff_date %><br>
+    <%= f.text_field :callsign_eff_date %>
+  </div>
+  <div class="field">
+    <%= f.label :tsid_ntsc %><br>
+    <%= f.text_field :tsid_ntsc %>
+  </div>
+  <div class="field">
+    <%= f.label :tsid_dtv %><br>
+    <%= f.text_field :tsid_dtv %>
+  </div>
+  <div class="field">
+    <%= f.label :digital_status %><br>
+    <%= f.text_field :digital_status %>
+  </div>
+  <div class="field">
+    <%= f.label :sat_tv %><br>
+    <%= f.text_field :sat_tv %>
+  </div>
+  <div class="field">
+    <%= f.label :network_affil %><br>
+    <%= f.text_field :network_affil %>
+  </div>
+  <div class="field">
+    <%= f.label :nielsen_dma %><br>
+    <%= f.text_field :nielsen_dma %>
+  </div>
+  <div class="field">
+    <%= f.label :tv_virtual_channel %><br>
+    <%= f.text_field :tv_virtual_channel %>
+  </div>
+  <div class="field">
+    <%= f.label :last_change_date %><br>
+    <%= f.datetime_select :last_change_date %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

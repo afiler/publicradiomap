@@ -1,0 +1,27 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  url: MyString
+  callsign: MyString
+  frequency: MyString
+  band: MyString
+  retransmitter: MyString
+  city: MyString
+  state: MyString
+  broadcaster_id: 
+  notes: MyText
+  geometry: 
+
+two:
+  name: MyString
+  url: MyString
+  callsign: MyString
+  frequency: MyString
+  band: MyString
+  retransmitter: MyString
+  city: MyString
+  state: MyString
+  broadcaster_id: 
+  notes: MyText
+  geometry: 

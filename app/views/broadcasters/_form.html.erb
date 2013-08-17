@@ -1,0 +1,17 @@
+<%= form_for(@broadcaster) do |f| %>
+  <% if @broadcaster.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@broadcaster.errors.count, "error") %> prohibited this broadcaster from being saved:</h2>
+
+      <ul>
+      <% @broadcaster.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
