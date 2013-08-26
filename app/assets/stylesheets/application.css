@@ -8,6 +8,30 @@
  * You're free to add application-wide styles to this file and they'll appear at the top of the
  * compiled file, but it's generally better to create a new file per style scope.
  *
- *= require_self
- *= require_tree .
+ * //= require_self
+ * //= require_tree .
  */
+
+= require leaflet
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #E5E0D9;
+}
+
+
+#map {
+  background: #132328;
+  width: 100%;
+  height: 100%;
+}
+
+#contour {
+  stroke: blue;
+  fill: rgba(0,0,255,0.05);
+}
+

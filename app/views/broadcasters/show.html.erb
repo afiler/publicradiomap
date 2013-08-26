@@ -1,4 +1,10 @@
 <p id="notice"><%= notice %></p>
 
+<h2><%= @broadcaster.summary %></h2>
+
+<%= render 'facilities/facility' %>
+
+<p>
+
 <%= link_to 'Edit', edit_broadcaster_path(@broadcaster) %> |
 <%= link_to 'Back', broadcasters_path %>

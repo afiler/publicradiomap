@@ -1,2 +1,61 @@
-<h1>Map#index</h1>
-<p>Find me in app/views/map/index.html.erb</p>
+<div id="map" style="height: 1024px;"></div>
+<script>
+var map;
+var contourLayer = null;
+
+var stringToColor = function(str) {
+
+    // str to hash
+    for (var i = 0, hash = 0; i < str.length; hash = str.charCodeAt(i++) + ((hash << 5) - hash));
+
+    // int/hash to hex
+    for (var i = 0, colour = "#"; i < 3; colour += ("00" + ((hash >> i++ * 8) & 0xFF).toString(16)).slice(-2));
+
+    return colour;
+}
+
+function fetchContours() {
+  console.log
+  $.getJSON("/broadcasters.json?bbox="+map.getBounds().toBBoxString()).done(function(data) {
+    
+    var myStyle = {
+        "color": "#ff7800",
+        "weight": 5,
+        "opacity": 0.65
+    };
+    
+    if (contourLayer) map.removeLayer(contourLayer);
+    
+    contourLayer = L.geoJson(data, {
+      onEachFeature: function(feature, layer) {
+        layer.bindPopup(feature.properties.summary);
+      },
+      
+      style: function (feature) {
+        return {
+          color: "#"+hex_md5(feature.properties.display_name).substring(0,6),
+          weight: 10,
+          opacity: 0.65,
+        }
+      }
+    });
+    
+    map.addLayer(contourLayer);
+  });
+}
+
+  $(document).ready(function() {
+    map = L.map('map').setView([47.605237, -122.324638], 9);
+
+    L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png', {
+       attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+       key: '8ee2a50541944fb9bcedded5165f09d9'
+    }).addTo(map);
+    
+    map.on('viewreset', fetchContours);
+    map.on('moveend', fetchContours);
+    map.on('resize', fetchContours);
+    map.on('load', fetchContours);
+    fetchContours();
+});
+</script>

@@ -46,5 +46,14 @@ end
 
 gem 'pg'
 gem 'activerecord-postgis-adapter'
+gem 'squeel'
 
 gem 'acts-as-taggable-on'
+
+gem 'nokogiri'
+
+
+group :development do
+  gem 'pry'
+  gem 'better_errors'
+end

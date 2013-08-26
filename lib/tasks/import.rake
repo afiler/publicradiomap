@@ -61,10 +61,60 @@ namespace :import do
   end
 
   task contours: :environment do
+    require 'nokogiri'
+    
     Dir['data/contours/*.kml'].each do |path|
       name = path.match /call=([^&]+)/ rescue next
-      broadcaster = Broadcaster.find_by_callsign name
+      puts $1
+      broadcaster = Broadcaster.find_by_callsign $1
+      next unless broadcaster
+      
+      doc = Nokogiri::XML.parse(open path).remove_namespaces!
+      line_string = doc.at "//Placemark[name/text()='60 dBu Service contour']/LineString"
+      line_string.at('tessellate').remove
+      line_string.at('altitudeMode').remove
+      line_string.at('coordinates').content = line_string.at('coordinates').text.gsub(/,0 $/, '')
+      
+      query = %Q{
+        update broadcasters
+        set contour=ST_GeomFromKML(?)
+        where id=#{broadcaster.id}
+      }
+      sanitized = ActiveRecord::Base.send :sanitize_sql_array, [query, line_string.to_s]
+      ActiveRecord::Base.connection.execute sanitized
     end
+  end
+  
+  task contours_from_web: :environment do
+    require 'nokogiri'
+    require 'open-uri'
+    
+    Broadcaster.find_by_sql("
+      select * from broadcasters where band='FM' and contour is null and facility_id is not null
+    ").each do |broadcaster|
+      puts broadcaster.summary
+      query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{broadcaster.facility_id}"
+      puts query_url
+      
+      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[text()='KML file (60 dBu)']")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
+      query = %Q{
+        update broadcasters
+        set contour=ST_GeomFromKML(?)
+        where id=#{broadcaster.id}
+      }
+      sanitized = ActiveRecord::Base.send :sanitize_sql_array, [query, contour_kml]
+      ActiveRecord::Base.connection.execute sanitized
+    end
+  end
+
+  def get_contour_kml(path)
+    doc = Nokogiri::XML.parse(open path).remove_namespaces!
+    line_string = doc.at "//Placemark[name/text()='60 dBu Service contour']/LineString"
+    line_string.at('tessellate').remove
+    line_string.at('altitudeMode').remove
+    line_string.at('coordinates').content = line_string.at('coordinates').text.gsub(/,0 $/, '')
+    
+    return line_string.to_s
   end
   
   task facilities: :environment do

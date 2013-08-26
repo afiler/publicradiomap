@@ -19,5 +19,8 @@ class CreateBroadcasters < ActiveRecord::Migration
 
       t.timestamps
     end
+    
+    # SELECT UpdateGeometrySRID('broadcasters', 'contour', 4326);
+    # SELECT UpdateGeometrySRID('broadcasters', 'location', 4326);
   end
 end

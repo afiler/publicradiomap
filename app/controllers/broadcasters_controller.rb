@@ -1,15 +1,20 @@
 class BroadcastersController < ApplicationController
-  before_action :set_broadcaster, only: [:show, :edit, :update, :destroy]
+  before_action :set_broadcaster, only: [:edit, :update, :destroy]
 
   # GET /broadcasters
   # GET /broadcasters.json
   def index
-    @broadcasters = Broadcaster.all
+    x1, y1, x2, y2 = params[:bbox].split(',')
+    factory = ::RGeo::Cartesian.preferred_factory
+    bbox = RGeo::Cartesian::BoundingBox.create_from_points(factory.point(x1, y1), factory.point(x2, y2))
+    @broadcasters = Broadcaster.where { contour.op '&&', bbox }.all
   end
 
   # GET /broadcasters/1
   # GET /broadcasters/1.json
   def show
+    @broadcaster = (Broadcaster.find(params[:id]) rescue Broadcaster.find_by_callsign(params[:id]))
+    @facility = @broadcaster.facility
   end
 
   # GET /broadcasters/new
@@ -24,6 +29,7 @@ class BroadcastersController < ApplicationController
   # POST /broadcasters
   # POST /broadcasters.json
   def create
+    return
     @broadcaster = Broadcaster.new(broadcaster_params)
 
     respond_to do |format|
@@ -40,6 +46,7 @@ class BroadcastersController < ApplicationController
   # PATCH/PUT /broadcasters/1
   # PATCH/PUT /broadcasters/1.json
   def update
+    return
     respond_to do |format|
       if @broadcaster.update(broadcaster_params)
         format.html { redirect_to @broadcaster, notice: 'Broadcaster was successfully updated.' }
@@ -54,6 +61,7 @@ class BroadcastersController < ApplicationController
   # DELETE /broadcasters/1
   # DELETE /broadcasters/1.json
   def destroy
+    return
     @broadcaster.destroy
     respond_to do |format|
       format.html { redirect_to broadcasters_url }

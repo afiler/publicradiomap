@@ -3,6 +3,8 @@ Publicradiomap::Application.routes.draw do
 
   get "map/index"
   
+  root "map#index"
+  
   resources :broadcasters
   
   # The priority is based upon order of creation: first created -> highest priority.
