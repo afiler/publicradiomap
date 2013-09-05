@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130826021549) do
+ActiveRecord::Schema.define(version: 20130904051752) do
 
   create_table "broadcasters", force: true do |t|
     t.string   "name"
@@ -28,9 +28,11 @@ ActiveRecord::Schema.define(version: 20130826021549) do
     t.text     "notes"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.spatial  "location",       limit: {:srid=>4326, :type=>"geometry"}
-    t.spatial  "contour",        limit: {:srid=>4326, :type=>"geometry"}
+    t.spatial  "location",        limit: {:srid=>4326, :type=>"geometry"}
+    t.spatial  "contour",         limit: {:srid=>4326, :type=>"geometry"}
     t.integer  "facility_id"
+    t.string   "color"
+    t.text     "contour_geojson"
   end
 
   add_index "broadcasters", ["facility_id"], :name => "index_broadcasters_on_facility_id"

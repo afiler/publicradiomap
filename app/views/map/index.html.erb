@@ -2,6 +2,7 @@
 <script>
 var map;
 var contourLayer = null;
+var broadcasters = {};
 
 var stringToColor = function(str) {
 
@@ -14,48 +15,51 @@ var stringToColor = function(str) {
     return colour;
 }
 
-function fetchContours() {
-  console.log
+function fetchBroadcasters() {
   $.getJSON("/broadcasters.json?bbox="+map.getBounds().toBBoxString()).done(function(data) {
-    
-    var myStyle = {
-        "color": "#ff7800",
-        "weight": 5,
-        "opacity": 0.65
-    };
-    
-    if (contourLayer) map.removeLayer(contourLayer);
-    
-    contourLayer = L.geoJson(data, {
-      onEachFeature: function(feature, layer) {
-        layer.bindPopup(feature.properties.summary);
-      },
-      
-      style: function (feature) {
-        return {
-          color: "#"+hex_md5(feature.properties.display_name).substring(0,6),
-          weight: 10,
-          opacity: 0.65,
-        }
-      }
+    data.broadcaster_ids.forEach(function(id) {
+      if (!broadcasters[id]) fetchBroadcaster(id);
     });
-    
-    map.addLayer(contourLayer);
   });
 }
 
-  $(document).ready(function() {
-    map = L.map('map').setView([47.605237, -122.324638], 9);
+function fetchBroadcaster(id) {
+  $.getJSON("/broadcasters/"+id+".json").done(function(data) {
+    if (!data.features.length) return;
+    addContour(data.features);
+    broadcasters[id] = data.features[0].properties;
+  });
+}
 
-    L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png', {
-       attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
-       key: '8ee2a50541944fb9bcedded5165f09d9'
-    }).addTo(map);
+function addContour(featureCollection) {
+  L.geoJson(featureCollection, {
+    onEachFeature: function(feature, layer) {
+      layer.bindPopup(feature.properties.summary);
+    },
     
-    map.on('viewreset', fetchContours);
-    map.on('moveend', fetchContours);
-    map.on('resize', fetchContours);
-    map.on('load', fetchContours);
-    fetchContours();
+    style: function (feature) {
+      return {
+        color: feature.properties.color, //"#"+hex_md5(feature.properties.display_name).substring(0,6),
+        weight: 10,
+        opacity: 0.65,
+      }
+    }
+  }).addTo(map);
+}
+
+
+$(document).ready(function() {
+  map = L.map('map').setView([47.605237, -122.324638], 9);
+
+  L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png', {
+     attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+     key: '8ee2a50541944fb9bcedded5165f09d9'
+  }).addTo(map);
+  
+  map.on('viewreset', fetchBroadcasters);
+  map.on('moveend', fetchBroadcasters);
+  map.on('resize', fetchBroadcasters);
+  map.on('load', fetchBroadcasters);
+  fetchBroadcasters();
 });
 </script>

@@ -1,0 +1,32 @@
+<h1>Parties</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Count</th>
+      <th>Callsigns</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @parties.each do |party| %>
+      <tr>
+        <td><%= party.name %></td>
+        <td><%= party.c %></td>
+        <td>
+          <% party.callsigns.each do |callsign| %>
+            <a href="http://en.wikipedia.org/wiki/<%=callsign%>"><%=callsign%></a>
+          <% end %>
+        </td>
+        <td><%= link_to 'Show', party %></td>
+        <td><%= link_to 'Edit', edit_party_path(party) %></td>
+        <td><%= link_to 'Destroy', party, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New party', new_party_path %>

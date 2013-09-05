@@ -90,13 +90,13 @@ namespace :import do
     require 'open-uri'
     
     Broadcaster.find_by_sql("
-      select * from broadcasters where band='FM' and contour is null and facility_id is not null
+      select * from broadcasters where band <> 'AM' and contour is null and facility_id is not null
     ").each do |broadcaster|
       puts broadcaster.summary
       query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{broadcaster.facility_id}"
       puts query_url
       
-      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[text()='KML file (60 dBu)']")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
+      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[starts-with(text(),'KML file')]")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
       query = %Q{
         update broadcasters
         set contour=ST_GeomFromKML(?)
@@ -109,12 +109,22 @@ namespace :import do
 
   def get_contour_kml(path)
     doc = Nokogiri::XML.parse(open path).remove_namespaces!
-    line_string = doc.at "//Placemark[name/text()='60 dBu Service contour']/LineString"
+    line_string = doc.at "//Placemark[contains(name/text(), 'Service contour')]/LineString"
     line_string.at('tessellate').remove
     line_string.at('altitudeMode').remove
     line_string.at('coordinates').content = line_string.at('coordinates').text.gsub(/,0 $/, '')
     
     return line_string.to_s
+  end
+  
+  def insert_translators
+    %Q{insert into broadcasters (notes, callsign, frequency, band, community, facility_id, parent_id)
+    select 'auto_from_assoc' notes, fac_callsign, fac_frequency, fac_service, comm_city, id,
+      (select id from broadcasters where facility_id=assoc_facility_id) broadcaster_id
+    from facilities f
+    where fac_status='LICEN' and fac_type in ('FT', 'FTB') and
+    assoc_facility_id in (select f.id from facilities f join broadcasters b on b.facility_id = f.id) and
+    id not in (select distinct facility_id from broadcasters where facility_id is not null);}
   end
   
   task facilities: :environment do

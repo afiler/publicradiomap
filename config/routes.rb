@@ -6,6 +6,7 @@ Publicradiomap::Application.routes.draw do
   root "map#index"
   
   resources :broadcasters
+  resources :parties
   
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

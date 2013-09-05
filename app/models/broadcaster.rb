@@ -1,3 +1,5 @@
+require 'digest/md5'
+
 class Broadcaster < ActiveRecord::Base
   belongs_to :parent, class_name: 'Broadcaster'
   belongs_to :facility
@@ -23,15 +25,30 @@ class Broadcaster < ActiveRecord::Base
   end
 
   def contour
-    JSON.parse ActiveRecord::Base.connection.select_all(%Q{
+    return contour_geojson if contour_geojson.present?
+    
+    contour_geojson = JSON.parse ActiveRecord::Base.connection.select_all(%Q{
       select ST_AsGeoJSON(contour) as contour from broadcasters where id=#{id}
     }).first['contour']
+    save
+    
+    return contour_geojson
   rescue
     nil
   end
   
   def display_name
     name.present? ? name : parent ? parent.display_name : licensee_name ? licensee_name : callsign
+  end
+  
+  def color
+    return read_attribute(:color) if read_attribute(:color).present?
+    return parent.color if parent
+    
+    color = "##{Digest::MD5.hexdigest(display_name)[0..5]}"
+    save
+    
+    color
   end
   
   def name_and_optional_callsign
@@ -43,7 +60,7 @@ class Broadcaster < ActiveRecord::Base
   end
   
   def summary
-    "#{licensee_name} / #{name_and_optional_callsign} / #{frequency} / #{facility && facility.comm_city}"
+    "#{name_and_optional_callsign} / #{frequency} / #{facility && facility.comm_city}"
   end
   
 end
