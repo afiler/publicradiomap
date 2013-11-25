@@ -1,65 +1,44 @@
-<div id="map" style="height: 1024px;"></div>
-<script>
-var map;
-var contourLayer = null;
-var broadcasters = {};
-
-var stringToColor = function(str) {
-
-    // str to hash
-    for (var i = 0, hash = 0; i < str.length; hash = str.charCodeAt(i++) + ((hash << 5) - hash));
-
-    // int/hash to hex
-    for (var i = 0, colour = "#"; i < 3; colour += ("00" + ((hash >> i++ * 8) & 0xFF).toString(16)).slice(-2));
-
-    return colour;
-}
-
-function fetchBroadcasters() {
-  $.getJSON("/broadcasters.json?bbox="+map.getBounds().toBBoxString()).done(function(data) {
-    data.broadcaster_ids.forEach(function(id) {
-      if (!broadcasters[id]) fetchBroadcaster(id);
-    });
-  });
-}
-
-function fetchBroadcaster(id) {
-  $.getJSON("/broadcasters/"+id+".json").done(function(data) {
-    if (!data.features.length) return;
-    addContour(data.features);
-    broadcasters[id] = data.features[0].properties;
-  });
-}
-
-function addContour(featureCollection) {
-  L.geoJson(featureCollection, {
-    onEachFeature: function(feature, layer) {
-      layer.bindPopup(feature.properties.summary);
-    },
-    
-    style: function (feature) {
-      return {
-        color: feature.properties.color, //"#"+hex_md5(feature.properties.display_name).substring(0,6),
-        weight: 10,
-        opacity: 0.65,
-      }
-    }
-  }).addTo(map);
-}
-
-
-$(document).ready(function() {
-  map = L.map('map').setView([47.605237, -122.324638], 9);
-
-  L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png', {
-     attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
-     key: '8ee2a50541944fb9bcedded5165f09d9'
-  }).addTo(map);
+<div id="panel" class="show-panel">
+  <div id="hide-button">
+    <i class="icon-chevron-left"></i>
+  </div>
   
-  map.on('viewreset', fetchBroadcasters);
-  map.on('moveend', fetchBroadcasters);
-  map.on('resize', fetchBroadcasters);
-  map.on('load', fetchBroadcasters);
-  fetchBroadcasters();
-});
+  <%= image_tag 'publicradiomap.png', id: "main_logo" %>
+  
+  <div id="panes">
+    <div id="key-section">
+      <ul id="key"></ul>
+    </div>
+    <div id="stats" style="display: none">
+      Showing <span id="station-count">?</span> stations.
+    </div>
+  </div>
+  
+  <div id="info">
+    Data sources:
+    <ul>
+      <li><a href="http://www.fcc.gov/encyclopedia/fm-query-broadcast-station-search">FCC</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/List_of_NPR_stations">Wikipedia</a></li>
+    </ul>
+    Written by <a href="http://afiler.com/">Andrew Filer</a><br/>
+    <a href="https://twitter.com/publicradiomap" ><img src="img/twitter-icon.png" width="16" height="16" style="width: 16px; height: 16px;">@publicradiomap on Twitter</a><br/>
+  </div>
+</div>
+
+<div id="map-holder">
+  <div id="show-button">
+    <i class="icon-chevron-right"></i>
+  </div>
+  <div id="map-canvas"></div>
+</div>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-18142366-4', 'publicradiomap.com');
+  ga('send', 'pageview');
+
 </script>

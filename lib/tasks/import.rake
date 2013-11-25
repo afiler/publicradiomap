@@ -90,13 +90,35 @@ namespace :import do
     require 'open-uri'
     
     Broadcaster.find_by_sql("
-      select * from broadcasters where band <> 'AM' and contour is null and facility_id is not null
+      select * from broadcasters where band='FM' and contour is null and facility_id is not null and id > 2417
     ").each do |broadcaster|
       puts broadcaster.summary
       query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{broadcaster.facility_id}"
       puts query_url
       
-      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[starts-with(text(),'KML file')]")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
+      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[text()='KML file (60 dBu)']")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
+      query = %Q{
+        update broadcasters
+        set contour=ST_GeomFromKML(?)
+        where id=#{broadcaster.id}
+      }
+      sanitized = ActiveRecord::Base.send :sanitize_sql_array, [query, contour_kml]
+      ActiveRecord::Base.connection.execute sanitized
+    end
+  end
+  
+  task contours_from_web: :environment do
+    require 'nokogiri'
+    require 'open-uri'
+    
+    Broadcaster.find_by_sql("
+      select * from broadcasters where band='FM' and contour is null and facility_id is not null
+    ").each do |broadcaster|
+      puts broadcaster.summary
+      query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{broadcaster.facility_id}"
+      puts query_url
+      
+      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[text()='KML file (60 dBu)']")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
       query = %Q{
         update broadcasters
         set contour=ST_GeomFromKML(?)
@@ -109,7 +131,7 @@ namespace :import do
 
   def get_contour_kml(path)
     doc = Nokogiri::XML.parse(open path).remove_namespaces!
-    line_string = doc.at "//Placemark[contains(name/text(), 'Service contour')]/LineString"
+    line_string = doc.at "//Placemark[name/text()='60 dBu Service contour']/LineString"
     line_string.at('tessellate').remove
     line_string.at('altitudeMode').remove
     line_string.at('coordinates').content = line_string.at('coordinates').text.gsub(/,0 $/, '')
@@ -133,6 +155,5 @@ namespace :import do
     #end
     #  copy facilities (comm_city, comm_state, eeo_rpt_ind, fac_address1, fac_address2, fac_callsign, fac_channel, fac_city, fac_country, fac_frequency, fac_service, fac_state, fac_status_date, fac_type, id, lic_expiration_date, fac_status, fac_zip1, fac_zip2, station_type, assoc_facility_id, callsign_eff_date, tsid_ntsc, tsid_dtv, digital_status, sat_tv, network_affil, nielsen_dma, tv_virtual_channel, last_change_date, crap1, crap2) from '/srv/www/publicradiomap/data/fcc/facility.dat' (format csv, delimiter '|', quote '$');
   end
-  
   
 end

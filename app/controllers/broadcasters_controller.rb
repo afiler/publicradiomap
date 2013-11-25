@@ -46,14 +46,16 @@ class BroadcastersController < ApplicationController
   # PATCH/PUT /broadcasters/1
   # PATCH/PUT /broadcasters/1.json
   def update
-    return
     respond_to do |format|
-      if @broadcaster.update(broadcaster_params)
+      #if @broadcaster.update(broadcaster_params)
+      if @broadcaster.update_attributes(broadcaster_params)
         format.html { redirect_to @broadcaster, notice: 'Broadcaster was successfully updated.' }
-        format.json { head :no_content }
+        #format.json { head :no_content }
+        format.json { respond_with_bip @broadcaster }
       else
         format.html { render action: 'edit' }
-        format.json { render json: @broadcaster.errors, status: :unprocessable_entity }
+        #format.json { render json: @broadcaster.errors, status: :unprocessable_entity }
+        format.json { respond_with_bip @broadcaster }
       end
     end
   end

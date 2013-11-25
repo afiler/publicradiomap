@@ -8,6 +8,8 @@ Publicradiomap::Application.routes.draw do
   resources :broadcasters
   resources :parties
   
+  get '/tile/:zoom/:x/:y/:layer.geojson', to: 'tiles#show', defaults: { format: :json }
+  
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

@@ -1,0 +1,29 @@
+div#key-section {
+  position: absolute;
+  top: 175px;
+  bottom: 120px;
+  left: 0;
+  overflow: auto;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+ul#key {
+  list-style: none;
+  position: relative;
+  margin: 0;
+}
+
+#key li {
+  padding: 0.4em 1em 0.4em 3em;
+}
+
+#key li span.color {
+  position: absolute;
+  width: 3em;
+  left: -0.5em;
+}
+
+#key li span.more_info {
+  color: gray;
+}

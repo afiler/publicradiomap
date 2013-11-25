@@ -5,6 +5,7 @@
 #   gem 'sqlite3'
 development:
   adapter: postgis
+  port: 5433
   database: publicradiomap
   encoding: unicode
   postgis_extension: true
@@ -21,6 +22,7 @@ test:
 
 production:
   adapter: postgis
+  port: 5433
   database: publicradiomap
   encoding: unicode
   postgis_extension: true

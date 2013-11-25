@@ -11,7 +11,65 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130904051752) do
+ActiveRecord::Schema.define(version: 20131124073711) do
+
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+  enable_extension "postgis"
+  enable_extension "postgis_topology"
+
+  create_table "active_admin_comments", force: true do |t|
+    t.string   "namespace"
+    t.text     "body"
+    t.string   "resource_id",   null: false
+    t.string   "resource_type", null: false
+    t.integer  "author_id"
+    t.string   "author_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "active_admin_comments", ["author_type", "author_id"], :name => "index_active_admin_comments_on_author_type_and_author_id"
+  add_index "active_admin_comments", ["namespace"], :name => "index_active_admin_comments_on_namespace"
+  add_index "active_admin_comments", ["resource_type", "resource_id"], :name => "index_active_admin_comments_on_resource_type_and_resource_id"
+
+  create_table "admin_users", force: true do |t|
+    t.string   "email",                  default: "", null: false
+    t.string   "encrypted_password",     default: "", null: false
+    t.string   "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.integer  "sign_in_count",          default: 0,  null: false
+    t.datetime "current_sign_in_at"
+    t.datetime "last_sign_in_at"
+    t.string   "current_sign_in_ip"
+    t.string   "last_sign_in_ip"
+  end
+
+  add_index "admin_users", ["email"], :name => "index_admin_users_on_email", :unique => true
+  add_index "admin_users", ["reset_password_token"], :name => "index_admin_users_on_reset_password_token", :unique => true
+
+  create_table "amreg", primary_key: "ogc_fid", force: true do |t|
+    t.spatial "wkb_geometry",  limit: {:srid=>900914, :type=>"geometry"}
+    t.string  "callsign",      limit: 18
+    t.string  "banner_code",   limit: 2
+    t.string  "mapnumber",     limit: 12
+    t.string  "mapdate",       limit: 12
+    t.string  "mapdwr",        limit: 12
+    t.string  "location",      limit: 25
+    t.string  "province",      limit: 15
+    t.string  "antenna",       limit: 8
+    t.string  "nif_eu",        limit: 10
+    t.string  "day_night",     limit: 15
+    t.string  "media",         limit: 5
+    t.string  "limitations",   limit: 18
+    t.string  "interference",  limit: 18
+    t.string  "contour_value", limit: 18
+    t.string  "cd_disk",       limit: 18
+    t.string  "type",          limit: 12
+  end
+
+  add_index "amreg", ["wkb_geometry"], :name => "amreg_geom_idx", :spatial => true
 
   create_table "broadcasters", force: true do |t|
     t.string   "name"
@@ -28,15 +86,56 @@ ActiveRecord::Schema.define(version: 20130904051752) do
     t.text     "notes"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.spatial  "location",        limit: {:srid=>4326, :type=>"geometry"}
-    t.spatial  "contour",         limit: {:srid=>4326, :type=>"geometry"}
+    t.spatial  "location",                 limit: {:srid=>4326, :type=>"geometry"}
+    t.spatial  "contour",                  limit: {:srid=>4326, :type=>"geometry"}
     t.integer  "facility_id"
     t.string   "color"
     t.text     "contour_geojson"
+    t.text     "wikipedia"
+    t.integer  "nighttime_power_in_watts"
+    t.string   "subtitle"
   end
 
   add_index "broadcasters", ["facility_id"], :name => "index_broadcasters_on_facility_id"
   add_index "broadcasters", ["parent_id"], :name => "index_broadcasters_on_parent_id"
+
+  create_table "broadcasters_ext", id: false, force: true do |t|
+    t.integer "id"
+    t.spatial "location",        limit: {:srid=>0, :type=>"geometry"}
+    t.spatial "contour",         limit: {:srid=>0, :type=>"geometry"}
+    t.text    "contour_geojson"
+    t.text    "wikipedia"
+  end
+
+  create_table "broadcasters_short", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "url"
+    t.string   "callsign"
+    t.string   "frequency"
+    t.string   "band"
+    t.integer  "power_in_watts"
+    t.string   "retransmits"
+    t.string   "community"
+    t.string   "official_city"
+    t.string   "official_state"
+    t.integer  "parent_id"
+    t.text     "notes"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "facility_id"
+    t.string   "color"
+    t.integer  "nighttime_power_in_watts"
+    t.string   "subtitle"
+  end
+
+  create_table "cbc_stations", force: true do |t|
+    t.string "filename"
+    t.string "network"
+    t.string "callsign"
+    t.string "frequency"
+    t.string "band"
+  end
 
   create_table "facilities", force: true do |t|
     t.string   "comm_city"
@@ -93,6 +192,202 @@ ActiveRecord::Schema.define(version: 20130904051752) do
     t.string   "crap2"
   end
 
+  create_table "fcc_am_ant_sys", force: true do |t|
+    t.string   "ant_mode"
+    t.integer  "ant_sys_id"
+    t.integer  "application_id"
+    t.integer  "aug_count"
+    t.string   "bad_data_switch"
+    t.string   "domestic_pattern"
+    t.string   "dummy_data_switch"
+    t.float    "efficiency_restricted"
+    t.float    "efficiency_theoretical"
+    t.string   "feed_circ_other"
+    t.string   "feed_circ_type"
+    t.string   "hours_operation"
+    t.integer  "lat_deg"
+    t.string   "lat_dir"
+    t.integer  "lat_min"
+    t.float    "lat_sec"
+    t.integer  "lon_deg"
+    t.string   "lon_dir"
+    t.integer  "lon_min"
+    t.float    "lon_sec"
+    t.float    "q_factor"
+    t.string   "q_factor_custom_ind"
+    t.float    "power"
+    t.float    "rms_augmented"
+    t.float    "rms_standard"
+    t.float    "rms_theoretical"
+    t.integer  "tower_count"
+    t.string   "eng_record_type"
+    t.float    "biased_lat"
+    t.float    "biased_long"
+    t.string   "mainkey"
+    t.string   "am_dom_status"
+    t.integer  "lat_whole_secs"
+    t.integer  "lon_whole_secs"
+    t.string   "ant_dir_ind"
+    t.string   "grandfathered_ind"
+    t.string   "specified_hrs_range"
+    t.string   "augmented_ind"
+    t.datetime "last_update_date"
+    t.string   "crap1"
+    t.string   "crap2"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "fcc_am_eng_data", force: true do |t|
+    t.string   "ant_monitor"
+    t.integer  "application_id"
+    t.string   "broadcast_schedule"
+    t.float    "encl_fence_dist"
+    t.integer  "facility_id"
+    t.string   "sampl_sys_ind"
+    t.string   "station_class"
+    t.string   "time_zone"
+    t.string   "region_2_class"
+    t.string   "am_dom_status"
+    t.string   "old_station_class"
+    t.string   "specified_hours"
+    t.string   "feed_circ_other"
+    t.string   "feed_circ_type"
+    t.datetime "last_update_date"
+    t.string   "crap1"
+    t.string   "crap2"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "fcc_applications", force: true do |t|
+    t.string   "app_arn"
+    t.string   "app_service"
+    t.integer  "facility_id"
+    t.string   "file_prefix"
+    t.string   "comm_city"
+    t.string   "comm_state"
+    t.float    "fac_frequency"
+    t.integer  "station_channel"
+    t.string   "fac_callsign"
+    t.string   "general_app_service"
+    t.string   "app_type"
+    t.string   "paper_filed_ind"
+    t.string   "dtv_type"
+    t.string   "frn"
+    t.string   "shortform_app_arn"
+    t.string   "shortform_file_prefix"
+    t.string   "corresp_ind"
+    t.integer  "assoc_facility_id"
+    t.string   "network_affil"
+    t.string   "sat_tv_ind"
+    t.string   "comm_county"
+    t.string   "comm_zip1"
+    t.string   "comm_zip2"
+    t.datetime "last_change_date"
+    t.string   "crap1"
+    t.string   "crap2"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "fcc_fm_eng_data", force: true do |t|
+    t.float    "ant_input_pwr"
+    t.float    "ant_max_pwr_gain"
+    t.string   "ant_polarization"
+    t.float    "ant_rotation"
+    t.integer  "antenna_id"
+    t.string   "antenna_type"
+    t.integer  "application_id"
+    t.string   "asd_service"
+    t.string   "asrn_na_ind"
+    t.integer  "asrn"
+    t.float    "avg_horiz_pwr_gain"
+    t.float    "biased_lat"
+    t.float    "biased_long"
+    t.string   "border_code"
+    t.float    "border_dist"
+    t.string   "docket_num"
+    t.float    "effective_erp"
+    t.float    "elev_amsl"
+    t.float    "elev_bldg_ag"
+    t.string   "eng_record_type"
+    t.integer  "facility_id"
+    t.string   "fm_dom_status"
+    t.float    "gain_area"
+    t.float    "haat_horiz_rc_mtr"
+    t.float    "haat_vert_rc_mtr"
+    t.float    "hag_horiz_rc_mtr"
+    t.float    "hag_overall_mtr"
+    t.float    "hag_vert_rc_mtr"
+    t.float    "horiz_bt_erp"
+    t.float    "horiz_erp"
+    t.integer  "lat_deg"
+    t.string   "lat_dir"
+    t.integer  "lat_min"
+    t.float    "lat_sec"
+    t.integer  "lon_deg"
+    t.string   "lon_dir"
+    t.integer  "lon_min"
+    t.float    "lon_sec"
+    t.float    "loss_area"
+    t.float    "max_ant_pwr_gain"
+    t.float    "max_haat"
+    t.float    "max_horiz_erp"
+    t.float    "max_vert_erp"
+    t.float    "multiplexor_loss"
+    t.float    "power_output_vis_kw"
+    t.float    "predict_coverage_area"
+    t.integer  "predict_pop"
+    t.float    "rcamsl_horiz_mtr"
+    t.float    "rcamsl_vert_mtr"
+    t.string   "station_class"
+    t.string   "terrain_data_src"
+    t.float    "vert_bt_erp"
+    t.float    "vert_erp"
+    t.integer  "num_sections"
+    t.float    "present_area"
+    t.float    "percent_change"
+    t.float    "spacing"
+    t.string   "terrain_data_src_other"
+    t.float    "trans_power_output"
+    t.string   "mainkey"
+    t.integer  "lat_whole_secs"
+    t.integer  "lon_whole_secs"
+    t.integer  "station_channel"
+    t.string   "lic_ant_make"
+    t.string   "lic_ant_model_num"
+    t.float    "min_horiz_erp"
+    t.string   "haat_horiz_calc_ind"
+    t.integer  "erp_w"
+    t.integer  "trans_power_output_w"
+    t.string   "market_group_num"
+    t.datetime "last_change_date"
+    t.string   "crap1"
+    t.string   "crap2"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "fmreg", primary_key: "ogc_fid", force: true do |t|
+    t.spatial "wkb_geometry",  limit: {:srid=>900914, :type=>"geometry"}
+    t.string  "callsign",      limit: 18
+    t.string  "banner_code",   limit: 2
+    t.string  "mapnumber",     limit: 10
+    t.string  "mapdate",       limit: 12
+    t.string  "mapdwr",        limit: 12
+    t.string  "location",      limit: 25
+    t.string  "province",      limit: 15
+    t.string  "media",         limit: 5
+    t.string  "limitations",   limit: 18
+    t.string  "interference",  limit: 18
+    t.string  "contour_value", limit: 18
+    t.string  "cd_disk",       limit: 18
+    t.string  "type",          limit: 12
+  end
+
+  add_index "fmreg", ["wkb_geometry"], :name => "fmreg_geom_idx", :spatial => true
+
   create_table "networks", force: true do |t|
     t.string  "fac_address1"
     t.string  "fac_address2"
@@ -107,6 +402,10 @@ ActiveRecord::Schema.define(version: 20130904051752) do
   add_index "networks", ["fac_city"], :name => "index_networks_on_fac_city"
   add_index "networks", ["fac_country"], :name => "index_networks_on_fac_country"
   add_index "networks", ["fac_state"], :name => "index_networks_on_fac_state"
+
+  create_table "npr_stations", force: true do |t|
+    t.json "station"
+  end
 
   create_table "parties", force: true do |t|
     t.string   "address1"
@@ -143,6 +442,28 @@ ActiveRecord::Schema.define(version: 20130904051752) do
 
   create_table "tags", force: true do |t|
     t.string "name"
+  end
+
+  create_table "tmp_npr", id: false, force: true do |t|
+    t.integer "id"
+    t.text    "callletters"
+    t.text    "band"
+    t.text    "name"
+    t.text    "network"
+    t.text    "frequency"
+    t.text    "marketcity"
+    t.text    "state"
+  end
+
+  create_table "tmp_npr_2", id: false, force: true do |t|
+    t.integer "id"
+    t.text    "callletters"
+    t.text    "band"
+    t.text    "name"
+    t.text    "network"
+    t.text    "frequency"
+    t.text    "marketcity"
+    t.text    "state"
   end
 
 end
