@@ -4,7 +4,7 @@
 #   Ensure the SQLite 3 gem is defined in your Gemfile
 #   gem 'sqlite3'
 development:
-  adapter: postgis
+  adapter: postgresql #postgis
   port: 5433
   database: publicradiomap
   encoding: unicode
@@ -21,7 +21,7 @@ test:
   timeout: 5000
 
 production:
-  adapter: postgis
+  adapter: postgresql #postgis
   port: 5433
   database: publicradiomap
   encoding: unicode

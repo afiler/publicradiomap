@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131124073711) do
+ActiveRecord::Schema.define(version: 20131127054852) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,9 +29,9 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.datetime "updated_at"
   end
 
-  add_index "active_admin_comments", ["author_type", "author_id"], :name => "index_active_admin_comments_on_author_type_and_author_id"
-  add_index "active_admin_comments", ["namespace"], :name => "index_active_admin_comments_on_namespace"
-  add_index "active_admin_comments", ["resource_type", "resource_id"], :name => "index_active_admin_comments_on_resource_type_and_resource_id"
+  add_index "active_admin_comments", ["author_type", "author_id"], name: "index_active_admin_comments_on_author_type_and_author_id", using: :btree
+  add_index "active_admin_comments", ["namespace"], name: "index_active_admin_comments_on_namespace", using: :btree
+  add_index "active_admin_comments", ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource_type_and_resource_id", using: :btree
 
   create_table "admin_users", force: true do |t|
     t.string   "email",                  default: "", null: false
@@ -46,66 +46,17 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.string   "last_sign_in_ip"
   end
 
-  add_index "admin_users", ["email"], :name => "index_admin_users_on_email", :unique => true
-  add_index "admin_users", ["reset_password_token"], :name => "index_admin_users_on_reset_password_token", :unique => true
+  add_index "admin_users", ["email"], name: "index_admin_users_on_email", unique: true, using: :btree
+  add_index "admin_users", ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true, using: :btree
 
-  create_table "amreg", primary_key: "ogc_fid", force: true do |t|
-    t.spatial "wkb_geometry",  limit: {:srid=>900914, :type=>"geometry"}
-    t.string  "callsign",      limit: 18
-    t.string  "banner_code",   limit: 2
-    t.string  "mapnumber",     limit: 12
-    t.string  "mapdate",       limit: 12
-    t.string  "mapdwr",        limit: 12
-    t.string  "location",      limit: 25
-    t.string  "province",      limit: 15
-    t.string  "antenna",       limit: 8
-    t.string  "nif_eu",        limit: 10
-    t.string  "day_night",     limit: 15
-    t.string  "media",         limit: 5
-    t.string  "limitations",   limit: 18
-    t.string  "interference",  limit: 18
-    t.string  "contour_value", limit: 18
-    t.string  "cd_disk",       limit: 18
-    t.string  "type",          limit: 12
-  end
+# Could not dump table "amreg" because of following StandardError
+#   Unknown type 'geometry(Geometry,900914)' for column 'wkb_geometry'
 
-  add_index "amreg", ["wkb_geometry"], :name => "amreg_geom_idx", :spatial => true
+# Could not dump table "broadcasters" because of following StandardError
+#   Unknown type 'geometry' for column 'location'
 
-  create_table "broadcasters", force: true do |t|
-    t.string   "name"
-    t.string   "url"
-    t.string   "callsign"
-    t.string   "frequency"
-    t.string   "band"
-    t.integer  "power_in_watts"
-    t.string   "retransmits"
-    t.string   "community"
-    t.string   "official_city"
-    t.string   "official_state"
-    t.integer  "parent_id"
-    t.text     "notes"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.spatial  "location",                 limit: {:srid=>4326, :type=>"geometry"}
-    t.spatial  "contour",                  limit: {:srid=>4326, :type=>"geometry"}
-    t.integer  "facility_id"
-    t.string   "color"
-    t.text     "contour_geojson"
-    t.text     "wikipedia"
-    t.integer  "nighttime_power_in_watts"
-    t.string   "subtitle"
-  end
-
-  add_index "broadcasters", ["facility_id"], :name => "index_broadcasters_on_facility_id"
-  add_index "broadcasters", ["parent_id"], :name => "index_broadcasters_on_parent_id"
-
-  create_table "broadcasters_ext", id: false, force: true do |t|
-    t.integer "id"
-    t.spatial "location",        limit: {:srid=>0, :type=>"geometry"}
-    t.spatial "contour",         limit: {:srid=>0, :type=>"geometry"}
-    t.text    "contour_geojson"
-    t.text    "wikipedia"
-  end
+# Could not dump table "broadcasters_ext" because of following StandardError
+#   Unknown type 'geometry' for column 'location'
 
   create_table "broadcasters_short", id: false, force: true do |t|
     t.integer  "id"
@@ -128,6 +79,15 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.integer  "nighttime_power_in_watts"
     t.string   "subtitle"
   end
+
+# Could not dump table "ca_facilities" because of following StandardError
+#   Unknown type 'unknown' for column 'band'
+
+# Could not dump table "ca_facilities_am" because of following StandardError
+#   Unknown type 'geometry' for column 'wkb_geometry'
+
+# Could not dump table "ca_facilities_fm" because of following StandardError
+#   Unknown type 'geometry' for column 'wkb_geometry'
 
   create_table "cbc_stations", force: true do |t|
     t.string "filename"
@@ -176,12 +136,12 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.integer  "network_id"
   end
 
-  add_index "facilities", ["fac_address1"], :name => "index_facilities_on_fac_address1"
-  add_index "facilities", ["fac_address2"], :name => "index_facilities_on_fac_address2"
-  add_index "facilities", ["fac_callsign"], :name => "index_facilities_on_fac_callsign"
-  add_index "facilities", ["fac_city"], :name => "index_facilities_on_fac_city"
-  add_index "facilities", ["fac_country"], :name => "index_facilities_on_fac_country"
-  add_index "facilities", ["fac_state"], :name => "index_facilities_on_fac_state"
+  add_index "facilities", ["fac_address1"], name: "index_facilities_on_fac_address1", using: :btree
+  add_index "facilities", ["fac_address2"], name: "index_facilities_on_fac_address2", using: :btree
+  add_index "facilities", ["fac_callsign"], name: "index_facilities_on_fac_callsign", using: :btree
+  add_index "facilities", ["fac_city"], name: "index_facilities_on_fac_city", using: :btree
+  add_index "facilities", ["fac_country"], name: "index_facilities_on_fac_country", using: :btree
+  add_index "facilities", ["fac_state"], name: "index_facilities_on_fac_state", using: :btree
 
   create_table "facilities_parties", force: true do |t|
     t.integer  "facility_id"
@@ -369,24 +329,21 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.datetime "updated_at"
   end
 
-  create_table "fmreg", primary_key: "ogc_fid", force: true do |t|
-    t.spatial "wkb_geometry",  limit: {:srid=>900914, :type=>"geometry"}
-    t.string  "callsign",      limit: 18
-    t.string  "banner_code",   limit: 2
-    t.string  "mapnumber",     limit: 10
-    t.string  "mapdate",       limit: 12
-    t.string  "mapdwr",        limit: 12
-    t.string  "location",      limit: 25
-    t.string  "province",      limit: 15
-    t.string  "media",         limit: 5
-    t.string  "limitations",   limit: 18
-    t.string  "interference",  limit: 18
-    t.string  "contour_value", limit: 18
-    t.string  "cd_disk",       limit: 18
-    t.string  "type",          limit: 12
+# Could not dump table "fmreg" because of following StandardError
+#   Unknown type 'geometry(Geometry,900914)' for column 'wkb_geometry'
+
+  create_table "layer", id: false, force: true do |t|
+    t.integer "topology_id",                            null: false
+    t.integer "layer_id",                               null: false
+    t.string  "schema_name",    limit: nil,             null: false
+    t.string  "table_name",     limit: nil,             null: false
+    t.string  "feature_column", limit: nil,             null: false
+    t.integer "feature_type",                           null: false
+    t.integer "level",                      default: 0, null: false
+    t.integer "child_id"
   end
 
-  add_index "fmreg", ["wkb_geometry"], :name => "fmreg_geom_idx", :spatial => true
+  add_index "layer", ["schema_name", "table_name", "feature_column"], name: "layer_schema_name_table_name_feature_column_key", unique: true, using: :btree
 
   create_table "networks", force: true do |t|
     t.string  "fac_address1"
@@ -397,11 +354,11 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.boolean "has_broadcaster"
   end
 
-  add_index "networks", ["fac_address1"], :name => "index_networks_on_fac_address1"
-  add_index "networks", ["fac_address2"], :name => "index_networks_on_fac_address2"
-  add_index "networks", ["fac_city"], :name => "index_networks_on_fac_city"
-  add_index "networks", ["fac_country"], :name => "index_networks_on_fac_country"
-  add_index "networks", ["fac_state"], :name => "index_networks_on_fac_state"
+  add_index "networks", ["fac_address1"], name: "index_networks_on_fac_address1", using: :btree
+  add_index "networks", ["fac_address2"], name: "index_networks_on_fac_address2", using: :btree
+  add_index "networks", ["fac_city"], name: "index_networks_on_fac_city", using: :btree
+  add_index "networks", ["fac_country"], name: "index_networks_on_fac_country", using: :btree
+  add_index "networks", ["fac_state"], name: "index_networks_on_fac_state", using: :btree
 
   create_table "npr_stations", force: true do |t|
     t.json "station"
@@ -427,6 +384,14 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.string   "crap2"
   end
 
+  create_table "spatial_ref_sys", id: false, force: true do |t|
+    t.integer "srid",                   null: false
+    t.string  "auth_name", limit: 256
+    t.integer "auth_srid"
+    t.string  "srtext",    limit: 2048
+    t.string  "proj4text", limit: 2048
+  end
+
   create_table "taggings", force: true do |t|
     t.integer  "tag_id"
     t.integer  "taggable_id"
@@ -437,8 +402,8 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.datetime "created_at"
   end
 
-  add_index "taggings", ["tag_id"], :name => "index_taggings_on_tag_id"
-  add_index "taggings", ["taggable_id", "taggable_type", "context"], :name => "index_taggings_on_taggable_id_and_taggable_type_and_context"
+  add_index "taggings", ["tag_id"], name: "index_taggings_on_tag_id", using: :btree
+  add_index "taggings", ["taggable_id", "taggable_type", "context"], name: "index_taggings_on_taggable_id_and_taggable_type_and_context", using: :btree
 
   create_table "tags", force: true do |t|
     t.string "name"
@@ -465,5 +430,14 @@ ActiveRecord::Schema.define(version: 20131124073711) do
     t.text    "marketcity"
     t.text    "state"
   end
+
+  create_table "topology", force: true do |t|
+    t.string  "name",      limit: nil,                 null: false
+    t.integer "srid",                                  null: false
+    t.float   "precision",                             null: false
+    t.boolean "hasz",                  default: false, null: false
+  end
+
+  add_index "topology", ["name"], name: "topology_name_key", unique: true, using: :btree
 
 end

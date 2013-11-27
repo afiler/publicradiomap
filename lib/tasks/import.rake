@@ -90,29 +90,8 @@ namespace :import do
     require 'open-uri'
     
     Broadcaster.find_by_sql("
-      select * from broadcasters where band='FM' and contour is null and facility_id is not null and id > 2417
-    ").each do |broadcaster|
-      puts broadcaster.summary
-      query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{broadcaster.facility_id}"
-      puts query_url
-      
-      contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[text()='KML file (60 dBu)']")[:href] rescue (puts "FAILED for #{broadcaster.summary}"; next)
-      query = %Q{
-        update broadcasters
-        set contour=ST_GeomFromKML(?)
-        where id=#{broadcaster.id}
-      }
-      sanitized = ActiveRecord::Base.send :sanitize_sql_array, [query, contour_kml]
-      ActiveRecord::Base.connection.execute sanitized
-    end
-  end
-  
-  task contours_from_web: :environment do
-    require 'nokogiri'
-    require 'open-uri'
-    
-    Broadcaster.find_by_sql("
       select * from broadcasters where band='FM' and contour is null and facility_id is not null
+        and id > 2417 and (callsign like 'K%' or callsign like 'W%')
     ").each do |broadcaster|
       puts broadcaster.summary
       query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{broadcaster.facility_id}"

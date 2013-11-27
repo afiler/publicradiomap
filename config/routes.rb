@@ -8,6 +8,8 @@ Publicradiomap::Application.routes.draw do
   resources :broadcasters
   resources :parties
   
+  get '/broadcasters/:id', to: 'broadcasters#show', constraints: { id: /\d+/ }
+  get '/broadcasters/:callsign', to: 'broadcasters#show', constraints: { id: /[CKVW][A-Z0-9-]+/ }
   get '/tile/:zoom/:x/:y/:layer.geojson', to: 'tiles#show', defaults: { format: :json }
   
   # The priority is based upon order of creation: first created -> highest priority.
