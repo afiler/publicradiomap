@@ -18,13 +18,19 @@ $(document).ready ->
       
   progress = new L.TileLayer.Progress(contours)
 
+  url = purl(document.location)
+  lat = url.param('lat')
+  lon = url.param('lon')
+  z = url.param('z')
+  
   window.map = map = L.map 'map-canvas',
-    center: new L.LatLng(47.605237, -122.324638)
-    zoom: 9
+    center: new L.LatLng(lat or 47.605237, lon or -122.324638)
+    zoom: z or 9
     layers: [cloudmade, contourLayer]
   
-  $.getJSON 'http://freegeoip.net/json/?callback=?', null, (options) ->
-    map.setView([options.latitude, options.longitude], 9)
+  if not (lat and lon)
+    $.getJSON 'http://freegeoip.net/json/?callback=?', null, (options) ->
+      map.setView([options.latitude, options.longitude], 9)
   
   L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png',
      attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade'
@@ -33,11 +39,9 @@ $(document).ready ->
   
   cloudmade.addTo(map)
   contourLayer.addTo(map)
-  map.on 'moveend', ->
-    $('#key').empty()
+  map.on 'moveend', onMoveEnd
   
-  map.on 'zoomend', ->
-    contours = {}
+  map.on 'zoomend', onZoomEnd
     
   $(document).on 'mouseover', '#key li', onKeyHover
   $(document).on 'mouseout', '#key li', onEndKeyHover
@@ -81,6 +85,13 @@ onEachFeature = (feature, layer) ->
   color_id = p.color[1..]
   contours[color_id] ||= []
   contours[color_id].push layer
+  
+onMoveEnd = ->
+  $('#key').empty()
+  updateLink()
+
+onZoomEnd = ->
+  contours = {}
 
 onKeyHover = ->
   contour_list = contours[$(this).data('color-id')]
@@ -95,6 +106,9 @@ onFeatureHover = (e) ->
   
 onEndFeatureHover = (e) ->
   resetHighlight(e.target)
+
+updateLink = ->
+  $('a#self-link').attr('href', "?lat=#{map.getCenter().lat}&lon=#{map.getCenter().lng}&z=#{map.getZoom()}")
 
 highlightFeature = (layer, scrollIntoView) ->
   layer.setStyle(highlightStyle)

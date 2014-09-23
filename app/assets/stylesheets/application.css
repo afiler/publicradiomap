@@ -79,7 +79,15 @@ div#panel {
   right: 0;
   border: none;
   cursor: pointer;
-}    
+}
+
+#link-button {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  border: none;
+  cursor: pointer;
+}
 
 #goto-button {
   position: absolute;
@@ -122,6 +130,10 @@ div#panes {
 div#panes div {
   margin: 10px;
   padding: 5px;
+}
+
+div#sources {
+  padding-bottom: 5px;
 }
 
 #map-holder {

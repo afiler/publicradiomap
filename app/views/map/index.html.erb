@@ -1,9 +1,9 @@
 <div id="panel" class="show-panel">
-  <div id="hide-button">
-    <i class="icon-chevron-left"></i>
-  </div>
-  
   <%= image_tag 'publicradiomap.png', id: "main_logo" %>
+  
+  <div id="link-button">
+    <a id="self-link"><span class="glyphicon glyphicon-link"></span></a>
+  </div>
   
   <div id="panes">
     <div id="key-section">
@@ -15,13 +15,17 @@
   </div>
   
   <div id="info">
-    Data sources:
-    <ul>
-      <li><a href="http://www.fcc.gov/encyclopedia/fm-query-broadcast-station-search">FCC</a></li>
-      <li><a href="https://en.wikipedia.org/wiki/List_of_NPR_stations">Wikipedia</a></li>
-    </ul>
+    <div id="sources">
+      Data sources:<br>
+      <a href="http://www.fcc.gov/encyclopedia/fm-query-broadcast-station-search">FCC</a>,
+      <a href="http://www.ic.gc.ca/eic/site/smt-gst.nsf/eng/h_sf09484.html">IC</a>,
+      <a href="https://en.wikipedia.org/wiki/List_of_NPR_stations">Wikipedia</a><br>
+    </div>
     Written by <a href="http://afiler.com/">Andrew Filer</a><br/>
-    <a href="https://twitter.com/publicradiomap" ><img src="img/twitter-icon.png" width="16" height="16" style="width: 16px; height: 16px;">@publicradiomap on Twitter</a><br/>
+    <a href="https://twitter.com/publicradiomap" >
+      <%= image_tag 'twitter-icon.png', id: "main_logo", width: 16, height: 16, style:"width: 16px; height: 16px;" %>@publicradiomap on Twitter
+    </a>
+    <br/>
   </div>
 </div>
 

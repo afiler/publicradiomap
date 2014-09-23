@@ -3,8 +3,16 @@ class CaFacility < ActiveRecord::Base
     city.strip
   end
   
+  def callsign
+    read_attribute(:callsign).strip
+  end
+  
   def frequency
-    read_attribute(:frequency).to_f.to_s
+    if band == 'FM'
+      "%2.1f" % read_attribute(:frequency)
+    else
+      "%3d" % read_attribute(:frequency)
+    end
   end
   
 end

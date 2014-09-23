@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'open-uri'
 
 class Broadcaster < ActiveRecord::Base
   belongs_to :parent, class_name: 'Broadcaster'
@@ -6,6 +7,9 @@ class Broadcaster < ActiveRecord::Base
   belongs_to :facility
   #self.rgeo_factory_generator = RGeo::Geographic.spherical_factory(:srid => 4326)
   acts_as_taggable_on :formats
+  
+  class Error < RuntimeError; end
+  class BroadcasterExistsError < Error; end
 
   def self.find_by_callsign(str)
     find_by_callsign_with_model Broadcaster, str
@@ -14,31 +18,42 @@ class Broadcaster < ActiveRecord::Base
   def self.find_by_callsign_with_model(model, str)
     model.find_by(callsign: str) ||
       if str =~ /(.+)-([^-]+)/
-        model.find_by(callsign: $1, band: $2)
+        model.find_by(callsign: $1, band: $2) rescue (puts $!; nil)
       else
-        model.find_by(callsign: "#{str}-FM") #||
+        model.find_by(callsign: "#{str}-FM") rescue (puts $!; nil) #||
           #model.find_by(callsign: "#{str}-AM")
       end
   end
   
   def self.create_from_callsign(callsign, options={})
-    fail "Broadcaster already exists" if Broadcaster.find_by_callsign(callsign)
+    #raise BroadcasterExistsError if Broadcaster.find_by_callsign(callsign)
+    puts "*** #{callsign} already exists" if Broadcaster.find_by_callsign(callsign)
     
-    facility = find_by_callsign_with_model Facility, callsign
-    facility ||= find_by_callsign_with_model CaFacility, callsign
+    facility = find_by_callsign_with_model CaFacility, callsign if callsign =~ /^[CV]/
+    facility ||= find_by_callsign_with_model Facility, callsign if callsign =~ /^[KW]/
     
-    return unless facility
+    (puts "** #{callsign} not found"; return) unless facility
     
     puts "** Found facility: #{facility.pretty_inspect}"
     
     options.merge! facility: (facility if facility.is_a? Facility), callsign: facility.callsign,
-      frequency: facility.frequency, band: facility.band
+      frequency: facility.frequency, band: facility.band, community: facility.community.titlecase
+      #subtitle: facility.community.titlecase
     broadcaster = create options
-    broadcaster.fetch_contours_from_web
+    broadcaster.build_contour
     
     broadcaster
   end
-    
+  
+  def create_children_from_associated_facilities
+    Facility.where(<<-SQL
+      fac_status='LICEN' and fac_type in ('FT', 'FTB')
+      and assoc_facility_id=#{facility_id}
+      and id not in (select facility_id from broadcasters where facility_id is not null)
+    SQL
+    ).map { |f| f.create_broadcaster parent: self }
+  end
+  
   def licensee
     @licensee ||= facility.licensee if facility
   end
@@ -117,12 +132,80 @@ class Broadcaster < ActiveRecord::Base
     "#{name_and_optional_callsign} / #{frequency} / #{(facility && facility.comm_city) || community}"
   end
   
-  def fetch_contours_from_web
-    require 'open-uri'
+  def country
+    case callsign
+    when /^[KW]/
+      'US'
+    when /^[CV]/
+      'CA'
+    end
+  end
+  
+  def spin_color
+    self.color = "#%06x" % rand(0xffffff)
+    save
+    self.color
+  end
+  
+  def build_contour
+    if country == 'CA'
+      ca_build_contour
+    else
+      if band == 'AM'
+        build_contour_am
+      else
+        build_contour_fm
+      end
+    end
+  end
+  
+  def ca_build_contour
+    ActiveRecord::Base.connection.execute <<-SQL
+      update broadcasters
+      set contour=st_setsrid(wkb_geometry, 4326) from fmreg
+      where (fmreg.callsign=broadcasters.callsign or fmreg.callsign=broadcasters.callsign||'-'||broadcasters.band) 
+        and broadcasters.id=#{id};
+      update broadcasters
+      set contour=st_setsrid(wkb_geometry, 4326) from amreg
+      where broadcasters.contour is null and 
+        (amreg.callsign=broadcasters.callsign or amreg.callsign=broadcasters.callsign||'-'||broadcasters.band)
+        and day_night='DAY' and broadcasters.id=#{id};
+    SQL
+    reload
+  end
+  
+  def build_contour_am
+    ActiveRecord::Base.connection.execute <<-SQL
+      update broadcasters set radius_in_km=120*(power_in_watts/5000.0)
+        where id=#{id} and radius_in_km is null;
+        
+      update broadcasters b
+      set location=st_setsrid(
+        st_makepoint(
+          0-(lon_deg+(lon_min/60.0)+(lon_sec/3600.0)),
+          lat_deg+(lat_min/60.0)+(lat_sec/3600.0)
+        ), 4326)
+      from fcc_am_ant_sys ant, fcc_applications app
+      where b.facility_id=app.facility_id and ant.application_id=app.id
+        and b.id=#{id} and b.location is null;
+      
+      update broadcasters b
+      set contour=geometry(ST_Buffer(geography(ST_Transform(location, 4326)), radius_in_km*1000))
+      where b.id=#{id};
+    SQL
+    reload
+  end
+  
+  def build_contour_fm
     query_url = "http://transition.fcc.gov/fcc-bin/fmq?facid=#{facility_id}"
     puts "* Fetching #{query_url}"
     
-    contour_kml = get_contour_kml Nokogiri::HTML(open query_url).at("//a[text()='KML file (60 dBu)']")[:href]
+    build_contour_fm_from_kml_url Nokogiri::HTML(open query_url).at("//a[starts-with(text(),'KML file')]")[:href]
+  end
+  
+  def build_contour_fm_from_kml_url(url)
+    contour_kml = get_contour_kml url
+
     query = %Q{
       update broadcasters
       set contour=ST_GeomFromKML(?)
@@ -131,14 +214,14 @@ class Broadcaster < ActiveRecord::Base
     sanitized = ActiveRecord::Base.send :sanitize_sql_array, [query, contour_kml]
     ActiveRecord::Base.connection.execute sanitized
     
-    self
+    reload
   end
 
   private
 
   def get_contour_kml(path)
     doc = Nokogiri::XML.parse(open path).remove_namespaces!
-    line_string = doc.at "//Placemark[name/text()='60 dBu Service contour']/LineString"
+    line_string = doc.at "//Placemark[substring-after(name/text(), ' ')='dBu Service contour']/LineString"
     line_string.at('tessellate').remove
     line_string.at('altitudeMode').remove
     line_string.at('coordinates').content = line_string.at('coordinates').text.gsub(/,0 $/, '')

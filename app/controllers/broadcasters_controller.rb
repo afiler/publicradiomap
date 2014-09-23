@@ -13,9 +13,14 @@ class BroadcastersController < ApplicationController
   # GET /broadcasters/1
   # GET /broadcasters/1.json
   def show
-    @broadcaster = Broadcaster.find(params[:id]) if params[:id]
+    @broadcaster = Broadcaster.find(params[:id]) if params[:id] rescue nil
     @broadcaster ||= Broadcaster.find_by_callsign(params[:callsign]) if params[:callsign]
-    @facility = @broadcaster.facility
+    
+    if @broadcaster
+      @facility = @broadcaster.facility
+    else
+      render :status => 404
+    end
   end
 
   # GET /broadcasters/new
